@@ -1,7 +1,6 @@
 import { Router } from "express";
 import bookService from "../services/book.service.js";
 import { AuthMiddleware } from "../middlewares/auth.middleware.js";
-import { writeJsonFile } from "../utils/func.js";
 
 const router = Router();
 
@@ -20,16 +19,22 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", (req, res) => {
   const { id } = req.params;
-  const books = await bookService.getBooks();
-  const book = books[id];
+  bookService
+    .getBooks()
+    .then((books) => {
+      const book = books[id];
 
-  if (book) {
-    return res.json(book);
-  }
+      if (book) {
+        return res.json(book);
+      }
 
-  return res.status(404).json({ error: "Book not found" });
+      return res.status(404).json({ error: "Book not found" });
+    })
+    .catch((error) => {
+      return res.status(500).json({ error: error.message });
+    });
 });
 
 router.get("/:id/review", async (req, res) => {

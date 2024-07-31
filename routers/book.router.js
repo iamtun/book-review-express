@@ -1,5 +1,7 @@
 import { Router } from "express";
 import bookService from "../services/book.service.js";
+import { AuthMiddleware } from "../middlewares/auth.middleware.js";
+import { writeJsonFile } from "../utils/func.js";
 
 const router = Router();
 
@@ -34,6 +36,39 @@ router.get("/:id/review", async (req, res) => {
   const { id } = req.params;
   const bookReview = await bookService.getBookReview(id);
   return res.json(bookReview);
+});
+
+router.post("/:id/review", AuthMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const { review } = req.body;
+
+  if (review) {
+    try {
+      await bookService.addBookReview(id, {
+        userId: req.userId,
+        review,
+      });
+      return res.json({
+        message: `The review for the book with ISBN ${id} has been added/updated`,
+      });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  } else {
+    return res.status(404).json({ error: "Review not found" });
+  }
+});
+
+router.delete("/:id/review", AuthMiddleware, async (req, res) => {
+  const { id } = req.params;
+  try {
+    await bookService.deleteBookReview(id, req.userId);
+    return res.json({
+      message: `Reviews for the book with ISBN ${id} posted by the user test deleted`,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 });
 
 export default router;

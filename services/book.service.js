@@ -38,7 +38,7 @@ class BookService {
   async getBookReview(id) {
     try {
       const bookData = await getJsonData(fileBookPath);
-      return bookData[id].reviews;
+      return bookData[id].review;
     } catch (error) {
       return {};
     }
@@ -49,15 +49,7 @@ class BookService {
 
     if (books[id]) {
       const { userId, review } = data;
-      const reviews = books[id].reviews;
-
-      const idx = reviews.findIndex((review) => review.userId === userId);
-      if (idx > -1) {
-        reviews[idx].review = review;
-      } else {
-        reviews.push(data);
-      }
-      books[id].reviews = reviews;
+      books[id].review[userId] = review;
       await writeJsonFile(fileBookPath, books);
     } else {
       throw new Error("Book not found");
@@ -68,8 +60,7 @@ class BookService {
     const books = await this.getBooks();
 
     if (books[id]) {
-      const reviews = books[id].reviews;
-      books[id].reviews = reviews.filter((review) => review.userId !== userId);
+      delete books[id].review[userId];
       await writeJsonFile(fileBookPath, books);
     } else {
       throw new Error("Book not found");

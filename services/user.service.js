@@ -36,6 +36,7 @@ class UserService {
       if (isExist) {
         throw new Error("Username already exists");
       } else {
+        const users = await this.getUsers();
         const id = users.length + 1;
         user.password = await bcrypt.hash(user.password, 10);
         const userData = await getJsonData(fileUserPath);
